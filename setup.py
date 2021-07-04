@@ -1,71 +1,64 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Note: To use the 'upload' functionality of this file, you must:
-#   $ pipenv install twine --dev
-
-import io
-import os
-import sys
+from io import TextIOWrapper
+from os import path, system
+from sys import executable, exit
 from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'python-sample'
-DESCRIPTION = 'My first python sample.'
-URL = 'https://github.com/me/myproject'
-EMAIL = 'carsten.leue@gmx.net'
-AUTHOR = 'Dr. Carsten Leue'
-REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.1.0'
+NAME = 'package-name'
+DESCRIPTION = 'Package description.'
+LICENSE = 'MIT',
+VERSION = '0.0.1'
+PYTHON_REQUIRES = '>=3.6.0'
+AUTHOR = ''
+AUTHOR_EMAIL = ''
+URL = 'https://github.com/user/project'
 
-# What packages are required for this module to be executed?
-REQUIRED = [
-    'rx'
-    # 'requests', 'maya', 'records',
-]
-
-# What packages are optional?
-EXTRAS = {
-    # 'fancy feature': ['django'],
+ABOUT = {
+    '__version__': VERSION
 }
 
-# The rest you shouldn't have to touch too much :)
-# ------------------------------------------------
-# Except, perhaps the License and Trove Classifiers!
-# If you do change the License, remember to change the Trove Classifier for that!
+# Packages required for this module to be executed.
+INSTALL_REQUIRES = [
+    # 'requests'
+]
 
-here = os.path.abspath(os.path.dirname(__file__))
+# Optional packages.
+EXTRAS_REQUIRE = {
+    # 'fancy feature': ['rx'],
+}
 
-# Import the README and use it as the long-description.
-# Note: this will only work if 'README.md' is present in your MANIFEST.in file!
-try:
-    with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-        long_description = '\n' + f.read()
-except FileNotFoundError:
-    long_description = DESCRIPTION
+HERE = path.abspath(path.dirname(__file__))
 
-# Load the package's __version__.py module as a dictionary.
-about = {}
-if not VERSION:
-    project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
+# Note: this will only work if 'README.md' is present in 'MANIFEST.in'.
+readme = (
+    open(path.join(HERE, 'README.md'), 'r', encoding='utf-8')
+    if path.exists(path.join(HERE, 'README.md'))
+    else None
+)
+readme_isfile = isinstance(readme, TextIOWrapper)
+
+LONG_DESCRIPTION = (
+    readme.read()
+    if readme_isfile
+    else DESCRIPTION
+)
+
+readme_isfile and readme.close()
 
 
 class UploadCommand(Command):
-    """Support setup.py upload."""
-
-    description = 'Build and publish the package.'
+    description = ''
     user_options = []
 
     @staticmethod
-    def status(s):
-        """Prints things in bold."""
-        print('\033[1m{0}\033[0m'.format(s))
+    def status(text):
+        # Prints text in bold.
+        print(f'\033[1m{text}\033[0m')
 
     def initialize_options(self):
         pass
@@ -74,59 +67,53 @@ class UploadCommand(Command):
         pass
 
     def run(self):
+        self.status('Removing previous builds')
+
         try:
-            self.status('Removing previous builds…')
-            rmtree(os.path.join(here, 'dist'))
+            rmtree(path.join(HERE, 'dist'))
         except OSError:
             pass
 
-        self.status('Building Source and Wheel (universal) distribution…')
-        os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
+        self.status('Building Source and Wheel (universal) distribution')
 
-        self.status('Uploading the package to PyPI via Twine…')
-        os.system('twine upload dist/*')
+        system(f'{executable} setup.py sdist bdist_wheel --universal')
 
-        self.status('Pushing git tags…')
-        os.system('git tag v{0}'.format(about['__version__']))
-        os.system('git push --tags')
-
-        sys.exit()
+        exit()
 
 
-# Where the magic happens:
 setup(
     name=NAME,
-    version=about['__version__'],
     description=DESCRIPTION,
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
+    license=LICENSE,
+    version=ABOUT['__version__'],
+    python_requires=PYTHON_REQUIRES,
     author=AUTHOR,
-    author_email=EMAIL,
-    python_requires=REQUIRES_PYTHON,
+    author_email=AUTHOR_EMAIL,
     url=URL,
-    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    # If your package is a single module, use this instead of 'packages':
-    # py_modules=['mypackage'],
-
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
-    install_requires=REQUIRED,
-    extras_require=EXTRAS,
+    packages=find_packages(
+        # py_modules=['package'] instead `packages` if the package is a single module.
+        exclude=[
+            "tests",
+            "*.tests",
+            "*.tests.*",
+            "tests.*"
+        ]
+    ),
+    install_requires=INSTALL_REQUIRES,
+    extras_require=EXTRAS_REQUIRE,
     include_package_data=True,
-    license='MIT',
     classifiers=[
         # Trove classifiers
-        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'License :: OSI Approved :: MIT License',
+        f'License :: OSI Approved :: {LICENSE} License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    # $ setup.py publish support.
     cmdclass={
         'upload': UploadCommand,
-    },
+    }
 )
