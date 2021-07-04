@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from os import path as ospath
+from sys import path as syspath
 
 import sample
+
+syspath.insert(0, ospath.abspath(ospath.join(ospath.dirname(__file__), '..')))
